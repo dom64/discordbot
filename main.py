@@ -129,6 +129,24 @@ async def rmmoney(ctx, target: Union[discord.Member, str], amount: int):
     else:
         await ctx.send("Invalid person")
 
+@bot.command(aliases=['dailyreset'])
+@commands.check(lambda ctx: ctx.author.id == 303884984903532555)
+async def resetdaily(ctx, target: Union[discord.Member, str]):
+    if isinstance(target, discord.Member):
+        user_id = target.id
+        change_daily(user_id, 0)
+        await ctx.send(f'{target.mention} daily timer reset!')
+    elif target.lower() == 'all':
+        for member in ctx.guild.members:
+            if member.bot:
+                continue
+            user_id = member.id
+            change_daily(user_id, 0)
+        await ctx.send(f'Reset daily timer for everypony!')
+    else:
+        await ctx.send("Invalid person")
+
+
 def get_cash(user_id):
     cursor.execute('SELECT cash FROM economy WHERE user_id = ?', (user_id,))
     result = cursor.fetchone()
