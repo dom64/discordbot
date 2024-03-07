@@ -40,7 +40,7 @@ async def on_message_delete(message):
 async def ping(ctx):
     await ctx.send(f"Pong!")
 
-@bot.command(aliases=['balance', 'bal'])
+@bot.command(aliases=['balance', 'bal', "$", "money"])
 async def cash(ctx, target: discord.Member = None):
     target = target or ctx.author
     user_id = target.id
@@ -84,7 +84,7 @@ async def daily(ctx):
     user_id = ctx.author.id
     last_timestamp = get_daily(user_id)
     current_timestamp = int(datetime.datetime.now().timestamp())
-    cooldown = 6 * 60 * 60
+    cooldown = 21600 # 6 hours
     time_left = cooldown - (current_timestamp - last_timestamp)
 
     if time_left <= 0:
