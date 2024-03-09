@@ -128,7 +128,6 @@ class Economy(commands.Cog):
             await ctx.send("Invalid person")
 
 
-
 # Functions to control the DB
 def get_cash(user_id):
     cursor.execute('SELECT cash FROM economy WHERE user_id = ?', (user_id,))
