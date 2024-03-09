@@ -77,7 +77,7 @@ class Economy(commands.Cog):
             await ctx.send(f"You've claimed your check come back in {time_left_msg}")
 
     @commands.command()
-    #@commands.check(lambda ctx: ctx.author.id == 303884984903532555)
+    @commands.check(lambda ctx: ctx.author.id == 303884984903532555)
     async def addmoney(self, ctx, target: Union[discord.Member, str], amount: int):
         if isinstance(target, discord.Member):
             user_id = target.id
