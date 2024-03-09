@@ -17,7 +17,6 @@ class JadMirror(commands.Cog):
                     file = await attachment.read()
                     mirror = discord.File(BytesIO(file), filename=attachment.filename)
                     await channel.send(f'{message.author.display_name}: {attachment.url}', file=mirror)
-        await self.bot.process_commands(message)
 
 async def setup(bot):
     await bot.add_cog(JadMirror(bot))
