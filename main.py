@@ -17,4 +17,5 @@ async def main():
     await setup()
     await bot.start("MTIxMzU4MjIzNDczMzI1MjY1OQ.GMRHzd.pI1bjQHUhrWiaH7f0eCZ4w3TWXBuEtSuV5G_Zw")
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())
