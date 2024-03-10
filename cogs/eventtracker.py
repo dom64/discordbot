@@ -13,6 +13,8 @@ cursor.execute('''
 ''')
 conn.commit()
 
+
+
 # Discord commands
 class EventTracking(commands.Cog):
     def __init__(self, bot):
@@ -31,7 +33,9 @@ class EventTracking(commands.Cog):
         if user_limit == 0:
             pass
         elif user_limit < users:
-            await member.send(f"""Hello {member.name},
+            await member.send(f"""# 🔔 Notification from NYFurs Bot
+
+Dear {member.name},
 
 You're receiving this message because you signed up for an event (**[{event.name}](<{event.url}>)**) that is full. As a result, your RSVP for this event is invalidated and you can't attend the event.
 
