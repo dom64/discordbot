@@ -29,7 +29,7 @@ class EventTracking(commands.Cog):
         event_id = event.id
         user_limit = get_user_limit(event_id)
         event_description = event_desc_cleaner(event.description)
-        channel = self.bot.get_channel(1212453511087001690)
+        channel = self.bot.get_channel(1212443869703045130)
         event_name = re.sub("\[.*?\] ", "", event.name)
         if user_limit == 0:
             pass
