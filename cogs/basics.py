@@ -8,6 +8,7 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Running as {self.bot.user}')
+        await self.bot.tree.sync()
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -17,7 +18,7 @@ class Basic(commands.Cog):
     async def on_message_delete(message):
         print(f'Message deleted in #{message.channel}: {message.content}')
     
-    @commands.command()
+    @commands.hybrid_command(name="ping", description="Pings the bot!")
     async def ping(self, ctx):
         await ctx.send(f"Pong!")
 
