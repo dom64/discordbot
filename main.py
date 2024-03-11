@@ -2,11 +2,16 @@ import discord
 from discord.ext import commands
 import os
 import asyncio
+import json
 
 intents = discord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+with open('token.json', 'r') as file:
+      data = json.load(file)
+      token = data.get('token')
 
 async def setup():
     for f in os.listdir("./cogs"):
@@ -15,7 +20,7 @@ async def setup():
 
 async def main():
     await setup()
-    await bot.start("MTIxMzU4MjIzNDczMzI1MjY1OQ.GMRHzd.pI1bjQHUhrWiaH7f0eCZ4w3TWXBuEtSuV5G_Zw")
+    await bot.start(token)
 
 if __name__ == '__main__':
     asyncio.run(main())
