@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 
-class Basic(commands.Cog):
+class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -12,6 +12,6 @@ class Basic(commands.Cog):
         await ctx.send("Synced slash commands")
 
 async def setup(bot):
-    await bot.add_cog(Basic(bot))
+    await bot.add_cog(Owner(bot))
 
 print("Initialized owner cog")
