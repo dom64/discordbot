@@ -8,7 +8,6 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Running as {self.bot.user}')
-        await self.bot.tree.sync()
 
     @commands.Cog.listener()
     async def on_message(self, message):
