@@ -3,9 +3,12 @@ from discord.ext import commands
 import os
 import asyncio
 import json
+import logging
+
 
 intents = discord.Intents.all()
 intents.members = True
+discord.utils.setup_logging(level=logging.INFO, root=False)
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
