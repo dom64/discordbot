@@ -14,7 +14,7 @@ class Basic(commands.Cog):
         print(f'Message from {message.author}: {message.content}')
 
     @commands.Cog.listener()
-    async def on_message_delete(message):
+    async def on_message_delete(self, message):
         print(f'Message deleted in #{message.channel}: {message.content}')
     
     @commands.hybrid_command(name="ping", description="Pings the bot!")
