@@ -215,7 +215,7 @@ class EventTracking(commands.Cog):
     @commands.Cog.listener()
     @commands.bot_has_permissions(manage_events=True)
     async def on_scheduled_event_update(self, before, after):
-        if before.status == discord.EventStatus.active and after.status == discord.EventStatus.completed:
+        if after.status == discord.EventStatus.completed:
             event_id = before.id
             event_check = check_event(event_id)
             if event_check != 0:
