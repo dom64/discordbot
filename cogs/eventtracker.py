@@ -4,6 +4,7 @@ import sqlite3
 import re
 import asyncio
 
+
 # Init DB
 conn = sqlite3.connect('bot.db')
 cursor = conn.cursor()
@@ -211,6 +212,25 @@ class EventTracking(commands.Cog):
             await role.delete()
             remove_event(message_id)
 
+    @commands.Cog.listener()
+    @commands.bot_has_permissions(manage_events=True)
+    async def on_scheduled_event_update(self, before, after):
+        if before.status == discord.EventStatus.active and after.status == discord.EventStatus.completed:
+            event_id = before.id
+            event_check = check_event(event_id)
+            if event_check != 0:
+                result = get_event_info_from_event_id(event_id)
+                message_id = result[0]
+                channel_id = result[1]
+                role_id = result[2]
+                channel = self.bot.get_channel(channel_id)
+                message = await channel.fetch_message(message_id)
+                await message.delete()
+                role = discord.utils.get(before.guild.roles, id=role_id)
+                await role.delete()
+                remove_event(message_id)
+
+
 
 
 def check_event(event_id):
@@ -247,13 +267,12 @@ def make_embed(event, limit, members=0):
     if event.start_time.strftime("%Y%m%d") == event.end_time.strftime("%Y%m%d"):
         end_time = f"<t:{int(event.end_time.timestamp())}:t>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
-    elif event.end_time != None:
+    else:
         end_time = f"<t:{int(event.end_time.timestamp())}:F>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
-    if event.location != None:
-        event_location = re.sub(r' ', '%20', event.location)
-        maps_url = f"https://www.google.com/maps/search/?api=1&query={event_location}"
-        embed.add_field(name="Location", value=f"[{event.location}]({maps_url})")
+    event_location = re.sub(r' ', '%20', event.location)
+    maps_url = f"https://www.google.com/maps/search/?api=1&query={event_location}"
+    embed.add_field(name="Location", value=f"[{event.location}]({maps_url})")
     if limit != 0:
         embed.add_field(name="Max People", value=f"{members}/{limit}")
     return embed
