@@ -129,13 +129,12 @@ class EventTracking(commands.Cog):
             role = discord.utils.get(ctx.guild.roles, id=role_id)
             role_int = len(role.members)
             event_name = re.sub("\[.*?\] ", "", event.name)
-            if limit != 0:
-                if role_int >= limit:
-                    await event.edit(name = f"[FULL] " + event_name)
-                elif role_int < limit:
-                   await event.edit(name = f"[{role_int}/{limit}] " + event_name)
-            else:
+            if limit == 0:
                 await event.edit(name = event_name)
+            elif role_int >= limit:
+                await event.edit(name = f"[FULL] " + event_name)
+            elif role_int < limit:
+                await event.edit(name = f"[{role_int}/{limit}] " + event_name)
             change_limit(message_id, limit)
             channel = self.bot.get_channel(channel_id)
             message = await channel.fetch_message(message_id)
@@ -144,8 +143,10 @@ class EventTracking(commands.Cog):
             await ctx.send("Event limit has been changed")
         elif limit < 0:
             await ctx.send("You can't have negatives as your limit")
-        else:
+        elif event_check == 0:
             await ctx.send("This event was already setup")
+
+            
 
     @commands.command()
     @commands.has_permissions(manage_events=True)
@@ -157,24 +158,25 @@ class EventTracking(commands.Cog):
             return
         event_id = event.id
         event_check = check_event(event_id)
-        if event_check != 0:
-            result = get_event_info_from_event_id(event_id)
-            message_id = result[0]
-            channel_id = result[1]
-            role_id = result[2]
-            limit = result[3]
-            if limit != 0:
-                event_name = re.sub("\[.*?\] ", "", event.name)
-                await event.edit(name = event_name)
-            channel = self.bot.get_channel(channel_id)
-            message = await channel.fetch_message(message_id)
-            await message.delete()
-            role = discord.utils.get(ctx.guild.roles, id=role_id)
-            await role.delete()
-            remove_event(message_id)
-            await ctx.send("Event deleted succesfully")
-        else:
-           await ctx.send("This event was never setup")
+        if event_check == 0:
+            await ctx.send("This event was never setup")
+            return
+        result = get_event_info_from_event_id(event_id)
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        limit = result[3]
+        if limit != 0:
+            event_name = re.sub("\[.*?\] ", "", event.name)
+            await event.edit(name = event_name)
+        channel = self.bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.delete()
+        role = discord.utils.get(ctx.guild.roles, id=role_id)
+        await role.delete()
+        remove_event(message_id)
+        await ctx.send("Event deleted succesfully")
+           
 
     @commands.command()
     @commands.has_permissions(manage_events=True)
@@ -188,62 +190,65 @@ class EventTracking(commands.Cog):
         event_check = check_event(event_id)
         if event.guild != ctx.guild:
             return
-        if event_check != 0:
-            result = get_event_info_from_event_id(event_id)
-            message_id = result[0]
-            channel_id = result[1]
-            role_id = result[2]
-            limit = result[3]
-            role = discord.utils.get(ctx.guild.roles, id=role_id)
-            role_int = len(role.members)
-            event_name = re.sub("\[.*?\] ", "", event.name)
-            if limit != 0:
-                if role_int >= limit:
-                    await event.edit(name = f"[FULL] " + event_name)
-                elif role_int < limit:
-                   await event.edit(name = f"[{role_int}/{limit}] " + event_name)
-            else:
-                await event.edit(name = event_name)
-            channel = self.bot.get_channel(channel_id)
-            message = await channel.fetch_message(message_id)
-            embed = make_embed(event, limit, role_int)
-            await message.edit(embed=embed)
-            await ctx.send("Event has been updated")
+        if event_check == 0:
+            return
+        result = get_event_info_from_event_id(event_id)
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        limit = result[3]
+        role = discord.utils.get(ctx.guild.roles, id=role_id)
+        role_int = len(role.members)
+        event_name = re.sub("\[.*?\] ", "", event.name)
+        if limit == 0:
+            await event.edit(name = event_name)
+        elif role_int >= limit:
+            await event.edit(name = f"[FULL] " + event_name)
+        elif role_int < limit:
+            await event.edit(name = f"[{role_int}/{limit}] " + event_name)
+        channel = self.bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        embed = make_embed(event, limit, role_int)
+        await message.edit(embed=embed)
+        await ctx.send("Event has been updated")
 
     @commands.Cog.listener()
     @commands.bot_has_permissions(manage_events=True)
     async def on_scheduled_event_delete(self, event):
         event_id = event.id
         event_check = check_event(event_id)
-        if event_check != 0:
-            result = get_event_info_from_event_id(event_id)
-            message_id = result[0]
-            channel_id = result[1]
-            role_id = result[2]
-            channel = self.bot.get_channel(channel_id)
-            message = await channel.fetch_message(message_id)
-            await message.delete()
-            role = discord.utils.get(event.guild.roles, id=role_id)
-            await role.delete()
-            remove_event(message_id)
+        if event_check == 0:
+            return
+        result = get_event_info_from_event_id(event_id)
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        channel = self.bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.delete()
+        role = discord.utils.get(event.guild.roles, id=role_id)
+        await role.delete()
+        remove_event(message_id)
 
     @commands.Cog.listener()
     @commands.bot_has_permissions(manage_events=True)
     async def on_scheduled_event_update(self, before, after):
-        if after.status == discord.EventStatus.completed:
-            event_id = before.id
-            event_check = check_event(event_id)
-            if event_check != 0:
-                result = get_event_info_from_event_id(event_id)
-                message_id = result[0]
-                channel_id = result[1]
-                role_id = result[2]
-                channel = self.bot.get_channel(channel_id)
-                message = await channel.fetch_message(message_id)
-                await message.delete()
-                role = discord.utils.get(before.guild.roles, id=role_id)
-                await role.delete()
-                remove_event(message_id)
+        if after.status != discord.EventStatus.completed:
+            return
+        event_id = before.id
+        event_check = check_event(event_id)
+        if event_check == 0:
+            return
+        result = get_event_info_from_event_id(event_id)
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        channel = self.bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.delete()
+        role = discord.utils.get(before.guild.roles, id=role_id)
+        await role.delete()
+        remove_event(message_id)
 
 
 
