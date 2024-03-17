@@ -65,7 +65,7 @@ class Buttons(discord.ui.View):
             await interaction.response.send_message(content=f"You have successfully un-RSVPed for {event_name}.", ephemeral=True)
             if limit != 0:
                 if role_int >= limit:
-                       await event.edit(name = f"[FULL] " + event_name)
+                    await event.edit(name = f"[FULL] " + event_name)
                 elif role_int < limit:
                    await event.edit(name = f"[{role_int}/{limit}] " + event_name)
                 embed = make_embed(event, limit, role_int)
@@ -99,6 +99,8 @@ class EventTracking(commands.Cog):
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def setupevent(self, ctx, event: discord.ScheduledEvent, limit: int=0, channel: discord.TextChannel=None):
+        if event.guild != ctx.guild:
+            return
         if channel is None:
             channel = ctx.channel
         event_id = event.id
@@ -126,7 +128,7 @@ class EventTracking(commands.Cog):
             event_name = re.sub("\[.*?\] ", "", event.name)
             if limit != 0:
                 if role_int >= limit:
-                       await event.edit(name = f"[FULL] " + event_name)
+                    await event.edit(name = f"[FULL] " + event_name)
                 elif role_int < limit:
                    await event.edit(name = f"[{role_int}/{limit}] " + event_name)
             else:
@@ -146,6 +148,8 @@ class EventTracking(commands.Cog):
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def removeevent(self, ctx, event: discord.ScheduledEvent):
+        if event.guild != ctx.guild:
+            return
         event_id = event.id
         event_check = check_event(event_id)
         if event_check != 0:
@@ -171,8 +175,12 @@ class EventTracking(commands.Cog):
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def updateevent(self, ctx, event: discord.ScheduledEvent):
+        if event.guild != ctx.guild:
+            return
         event_id = event.id
         event_check = check_event(event_id)
+        if event.guild != ctx.guild:
+            return
         if event_check != 0:
             result = get_event_info_from_event_id(event_id)
             message_id = result[0]
@@ -184,7 +192,7 @@ class EventTracking(commands.Cog):
             event_name = re.sub("\[.*?\] ", "", event.name)
             if limit != 0:
                 if role_int >= limit:
-                       await event.edit(name = f"[FULL] " + event_name)
+                    await event.edit(name = f"[FULL] " + event_name)
                 elif role_int < limit:
                    await event.edit(name = f"[{role_int}/{limit}] " + event_name)
             else:
