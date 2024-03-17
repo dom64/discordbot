@@ -177,6 +177,22 @@ class EventTracking(commands.Cog):
         await role.delete()
         remove_event(message_id)
         await ctx.send("Event deleted succesfully")
+
+    @commands.command()
+    @commands.is_owner()
+    @commands.bot_has_permissions(manage_events=True, manage_roles=True)
+    async def forceremoveevent(self, ctx, event):
+        result = get_event_info_from_event_id(event)
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        channel = self.bot.get_channel(channel_id)
+        message = await channel.fetch_message(message_id)
+        await message.delete()
+        role = discord.utils.get(ctx.guild.roles, id=role_id)
+        await role.delete()
+        remove_event(message_id)
+        await ctx.send("Event deleted succesfully")
            
 
     @commands.command()
