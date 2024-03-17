@@ -193,7 +193,13 @@ class EventTracking(commands.Cog):
         await role.delete()
         remove_event(message_id)
         await ctx.send("Event deleted succesfully")
-           
+
+    @commands.command()
+    @commands.is_owner()
+    async def dropevent(self, ctx, event):
+        result = get_event_info_from_event_id(event)
+        message_id = result[0]
+        remove_event(message_id)
 
     @commands.command()
     @commands.has_permissions(manage_events=True)
