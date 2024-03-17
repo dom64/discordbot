@@ -4,6 +4,7 @@ import sqlite3
 import re
 import asyncio
 from typing import Union
+from datetime import timedelta
 
 
 # Init DB
@@ -233,7 +234,7 @@ class EventTracking(commands.Cog):
     @commands.Cog.listener()
     @commands.bot_has_permissions(manage_events=True)
     async def on_scheduled_event_update(self, before, after):
-        if after.status != discord.EventStatus.completed:
+        if after.status != discord.EventStatus.completed and after.status != discord.EventStatus.cancelled:
             return
         event_id = before.id
         event_check = check_event(event_id)
@@ -284,10 +285,12 @@ def make_embed(event, limit, members=0):
     embed = discord.Embed(title=event.name, description=event.description, url=event.url)
     embed.set_author(name=event.creator, icon_url=event.creator.avatar)
     start_time = f"<t:{int(event.start_time.timestamp())}:F>"
-    if event.start_time.strftime("%Y%m%d") == event.end_time.strftime("%Y%m%d"):
+    if event.end_time == None:
+        embed.add_field(name="Time", value=f"{start_time}")
+    elif event.end_time - event.start_time < timedelta(hours=12):
         end_time = f"<t:{int(event.end_time.timestamp())}:t>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
-    elif event.end_time != None:
+    elif event.end_time - event.start_time >= timedelta(hours=12):
         end_time = f"<t:{int(event.end_time.timestamp())}:F>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
     if event.location != None:
