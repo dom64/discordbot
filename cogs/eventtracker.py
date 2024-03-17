@@ -3,6 +3,7 @@ from discord.ext import commands
 import sqlite3
 import re
 import asyncio
+from typing import Union
 
 
 # Init DB
@@ -98,7 +99,9 @@ class EventTracking(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
-    async def setupevent(self, ctx, event: discord.ScheduledEvent, limit: int=0, channel: discord.TextChannel=None):
+    async def setupevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite], limit: int=0, channel: discord.TextChannel=None):
+        if hasattr(event, "scheduled_event"):
+            event = event.scheduled_event
         if event.guild != ctx.guild:
             return
         if channel is None:
@@ -147,7 +150,9 @@ class EventTracking(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
-    async def removeevent(self, ctx, event: discord.ScheduledEvent):
+    async def removeevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite]):
+        if hasattr(event, "scheduled_event"):
+            event = event.scheduled_event
         if event.guild != ctx.guild:
             return
         event_id = event.id
@@ -174,7 +179,9 @@ class EventTracking(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
-    async def updateevent(self, ctx, event: discord.ScheduledEvent):
+    async def updateevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite]):
+        if hasattr(event, "scheduled_event"):
+            event = event.scheduled_event
         if event.guild != ctx.guild:
             return
         event_id = event.id
@@ -275,12 +282,13 @@ def make_embed(event, limit, members=0):
     if event.start_time.strftime("%Y%m%d") == event.end_time.strftime("%Y%m%d"):
         end_time = f"<t:{int(event.end_time.timestamp())}:t>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
-    else:
+    elif event.end_time != None:
         end_time = f"<t:{int(event.end_time.timestamp())}:F>"
         embed.add_field(name="Time", value=f"{start_time}\nto {end_time}")
-    event_location = re.sub(r' ', '%20', event.location)
-    maps_url = f"https://www.google.com/maps/search/?api=1&query={event_location}"
-    embed.add_field(name="Location", value=f"[{event.location}]({maps_url})")
+    if event.location != None:
+        event_location = re.sub(r' ', '%20', event.location)
+        maps_url = f"https://www.google.com/maps/search/?api=1&query={event_location}"
+        embed.add_field(name="Location", value=f"[{event.location}]({maps_url})")
     if limit != 0:
         embed.add_field(name="Max People", value=f"{members}/{limit}")
     return embed
