@@ -200,6 +200,7 @@ class EventTracking(commands.Cog):
         result = get_event_info_from_event_id(event)
         message_id = result[0]
         remove_event(message_id)
+        await ctx.send("Dropped")
 
     @commands.command()
     @commands.has_permissions(manage_events=True)
@@ -235,43 +236,43 @@ class EventTracking(commands.Cog):
         await message.edit(embed=embed)
         await ctx.send("Event has been updated")
 
-    @commands.Cog.listener()
-    @commands.bot_has_permissions(manage_events=True)
-    async def on_scheduled_event_delete(self, event):
-        event_id = event.id
-        event_check = check_event(event_id)
-        if event_check == 0:
-            return
-        result = get_event_info_from_event_id(event_id)
-        message_id = result[0]
-        channel_id = result[1]
-        role_id = result[2]
-        channel = self.bot.get_channel(channel_id)
-        message = await channel.fetch_message(message_id)
-        await message.delete()
-        role = discord.utils.get(event.guild.roles, id=role_id)
-        await role.delete()
-        remove_event(message_id)
+    # @commands.Cog.listener()
+    # @commands.bot_has_permissions(manage_events=True)
+    # async def on_scheduled_event_delete(self, event):
+    #     event_id = event.id
+    #     event_check = check_event(event_id)
+    #     if event_check == 0:
+    #         return
+    #     result = get_event_info_from_event_id(event_id)
+    #     message_id = result[0]
+    #     channel_id = result[1]
+    #     role_id = result[2]
+    #     channel = self.bot.get_channel(channel_id)
+    #     message = await channel.fetch_message(message_id)
+    #     await message.delete()
+    #     role = discord.utils.get(event.guild.roles, id=role_id)
+    #     await role.delete()
+    #     remove_event(message_id)
 
-    @commands.Cog.listener()
-    @commands.bot_has_permissions(manage_events=True)
-    async def on_scheduled_event_update(self, before, after):
-        if after.status != discord.EventStatus.completed and after.status != discord.EventStatus.cancelled:
-            return
-        event_id = before.id
-        event_check = check_event(event_id)
-        if event_check == 0:
-            return
-        result = get_event_info_from_event_id(event_id)
-        message_id = result[0]
-        channel_id = result[1]
-        role_id = result[2]
-        channel = self.bot.get_channel(channel_id)
-        message = await channel.fetch_message(message_id)
-        await message.delete()
-        role = discord.utils.get(before.guild.roles, id=role_id)
-        await role.delete()
-        remove_event(message_id)
+    # @commands.Cog.listener()
+    # @commands.bot_has_permissions(manage_events=True)
+    # async def on_scheduled_event_update(self, before, after):
+    #     if after.status != discord.EventStatus.completed and after.status != discord.EventStatus.cancelled:
+    #         return
+    #     event_id = before.id
+    #     event_check = check_event(event_id)
+    #     if event_check == 0:
+    #         return
+    #     result = get_event_info_from_event_id(event_id)
+    #     message_id = result[0]
+    #     channel_id = result[1]
+    #     role_id = result[2]
+    #     channel = self.bot.get_channel(channel_id)
+    #     message = await channel.fetch_message(message_id)
+    #     await message.delete()
+    #     role = discord.utils.get(before.guild.roles, id=role_id)
+    #     await role.delete()
+    #     remove_event(message_id)
 
 
 
