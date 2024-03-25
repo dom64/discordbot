@@ -35,14 +35,14 @@ class Gangstalker(commands.Cog):
 
     @commands.command()
     async def gangstalk(self, ctx, member: discord.Member = None, channel: discord.TextChannel = None):
-        if member.bot == True:
-            await ctx.send("We can't gangstalk our own people")
-            return
         if member == None:
             await ctx.send("Didn't select member")
             return
         if channel == None:
             await ctx.send("Didn't select channel")
+            return
+        if member.bot == True:
+            await ctx.send("We can't gangstalk our own people")
             return
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
         if channel_id != 0:
