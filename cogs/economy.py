@@ -65,7 +65,7 @@ class Economy(commands.Cog):
         user_id = ctx.author.id
         last_timestamp = get_daily(user_id)
         current_timestamp = int(datetime.datetime.now().timestamp())
-        cooldown = 21600 # 6 hours
+        cooldown = 21600 # 6 hours in seconds
         time_left = cooldown - (current_timestamp - last_timestamp)
 
         if time_left <= 0:
@@ -77,7 +77,7 @@ class Economy(commands.Cog):
             await ctx.send(f"You've claimed your check come back in {time_left_msg}")
 
     @commands.command()
-    @commands.check(lambda ctx: ctx.author.id == 303884984903532555)
+    @commands.is_owner()
     async def addmoney(self, ctx, target: Union[discord.Member, str], amount: int):
         if isinstance(target, discord.Member):
             user_id = target.id
@@ -94,7 +94,7 @@ class Economy(commands.Cog):
             await ctx.send("Invalid person")
 
     @commands.command()
-    @commands.check(lambda ctx: ctx.author.id == 303884984903532555)
+    @commands.is_owner()
     async def rmmoney(self, ctx, target: Union[discord.Member, str], amount: int):
         if isinstance(target, discord.Member):
             user_id = target.id
@@ -111,7 +111,7 @@ class Economy(commands.Cog):
             await ctx.send("Invalid person")
 
     @commands.command(aliases=['dailyreset'])
-    @commands.check(lambda ctx: ctx.author.id == 303884984903532555)
+    @commands.is_owner()
     async def resetdaily(self, ctx, target: Union[discord.Member, str]):
         if isinstance(target, discord.Member):
             user_id = target.id
