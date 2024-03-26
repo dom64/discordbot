@@ -21,6 +21,8 @@ class Gangstalker(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.guild == None:
+            return
         channel_id = verify_gangstalk(message.author.id, message.guild.id)
         if channel_id == 0:
             return
@@ -34,6 +36,7 @@ class Gangstalker(commands.Cog):
                 await channel.send(f'{message.author.display_name}: {attachment.url}', file=mirror)
 
     @commands.command()
+    @commands.is_owner()
     async def gangstalk(self, ctx, member: discord.Member = None, channel: discord.TextChannel = None):
         if member == None:
             await ctx.send("Didn't select member")
@@ -52,6 +55,7 @@ class Gangstalker(commands.Cog):
         await ctx.send("Gangstalking agents are now setup")
 
     @commands.command()
+    @commands.is_owner()
     async def ungangstalk(self, ctx, member: discord.Member = None):
         if member == None:
             await ctx.send("Didn't select member")
