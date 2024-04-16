@@ -82,7 +82,7 @@ class Economy(commands.Cog):
         print(top_ten)
         format = "Top 10:\n"
         for x in top_ten:
-            format += f"@silent <@{x[0]}> has ${x[1]}\n"
+            format += f"<@{x[0]}> has ${x[1]}\n"
         await ctx.send(format, silent=True)
 
     @commands.command()
