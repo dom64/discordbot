@@ -38,6 +38,8 @@ class Gangstalker(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def gangstalk(self, ctx, member: discord.Member = None, channel: discord.TextChannel = None):
+        if ctx.guild == None:
+            return
         if member == None:
             await ctx.send("Didn't select member")
             return
@@ -57,12 +59,14 @@ class Gangstalker(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def ungangstalk(self, ctx, member: discord.Member = None):
+        if ctx.guild == None:
+            return
         if member == None:
             await ctx.send("Didn't select member")
             return
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
         if channel_id == 0:
-            await ctx.send("Gangstalking agents arent activated for this person")
+            await ctx.send("Gangstalking agents aren't activated for this person")
             return
         remove_gangstalk(member.id, ctx.guild.id)
         await ctx.send("Gangstalking agents are now gone....")

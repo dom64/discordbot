@@ -28,8 +28,18 @@ class Economy(commands.Cog):
         cash = get_cash(user_id)
         await ctx.send(f'{target.mention} has ${cash}')
 
+    @cash.error
+    async def cash_error(self, ctx, error):
+        if isinstance(error, discord.ext.commands.errors.MemberNotFound):
+            await ctx.send("Error: Member not found")
+        else:
+            raise error
+
     @commands.command(aliases=['flip', 'coinflip'])
-    async def betflip(self, ctx, amount: str, choice: str = 'h'):
+    async def betflip(self, ctx, amount: str = None, choice: str = 'h'):
+        if amount is None:
+            await ctx.send("!betflip (amount) (h/t)")
+            return
         user_id = ctx.author.id
         user_cash = get_cash(user_id)
 
@@ -76,14 +86,14 @@ class Economy(commands.Cog):
             time_left_msg = str(datetime.timedelta(seconds=time_left))
             await ctx.send(f"You've claimed your check come back in {time_left_msg}")
 
-    @commands.command()
+    @commands.command(aliases=['top10'])
     async def top(self, ctx):
         top_ten = get_top()
-        print(top_ten)
-        format = "Top 10:\n"
+        embed = discord.Embed(title="Top 10:")
         for x in top_ten:
-            format += f"<@{x[0]}> has ${x[1]}\n"
-        await ctx.send(format, silent=True)
+            member = self.bot.get_user(x[0])
+            embed.add_field(name=f"{member}", value=f"${x[1]}")
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.is_owner()
