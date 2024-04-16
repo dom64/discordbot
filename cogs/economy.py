@@ -20,6 +20,9 @@ conn.commit()
 class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+    
+    async def cog_load(self):
+        print("Initialized economy cog")
 
     @commands.command(aliases=['balance', 'bal', "$", "money"])
     async def cash(self, ctx, target: discord.Member = None):
@@ -187,5 +190,3 @@ def get_top():
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))
-
-print("Initialized economy cog")

@@ -5,6 +5,9 @@ class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_load(self):
+        print("Initialized owner cog")
+
     @commands.is_owner()
     @commands.command()
     async def syncslash(self, ctx):
@@ -13,5 +16,3 @@ class Owner(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Owner(bot))
-
-print("Initialized owner cog")

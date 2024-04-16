@@ -98,6 +98,7 @@ class EventTracking(commands.Cog):
     
     async def cog_load(self):
         self.bot.add_view(Buttons())
+        print("Initialized event tracking cog")
 
     @commands.command()
     @commands.has_permissions(manage_events=True)
@@ -344,7 +345,3 @@ def make_embed(event, limit, members=0):
 
 async def setup(bot):
     await bot.add_cog(EventTracking(bot))
-
-
-
-print("Initialized event tracking cog")

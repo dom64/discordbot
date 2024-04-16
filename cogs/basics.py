@@ -5,6 +5,9 @@ class Basic(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cog_load(self):
+        print("Initialized basic cog")
+
     @commands.Cog.listener()
     async def on_ready(self):
         print(f'Running as {self.bot.user}')
@@ -23,5 +26,3 @@ class Basic(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Basic(bot))
-
-print("Initialized basic cog")

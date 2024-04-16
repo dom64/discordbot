@@ -18,6 +18,9 @@ conn.commit()
 class Gangstalker(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def cog_load(self):
+        print("Initialized gangstalker cog")
     
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -56,15 +59,6 @@ class Gangstalker(commands.Cog):
         create_gangstalk(member.id, ctx.guild.id, channel.id)
         await ctx.send("Gangstalking agents are now setup")
 
-    @gangstalk.error
-    async def gangstalk_error(self, ctx, error):
-        if isinstance(error, discord.ext.commands.errors.ChannelNotFound):
-            await ctx.send("Error: Channel not found")
-        if isinstance(error, discord.ext.commands.errors.MemberNotFound):
-            await ctx.send("Error: Member not found")
-        else:
-            raise error
-
     @commands.command()
     @commands.is_owner()
     async def ungangstalk(self, ctx, member: discord.Member = None):
@@ -80,12 +74,14 @@ class Gangstalker(commands.Cog):
         remove_gangstalk(member.id, ctx.guild.id)
         await ctx.send("Gangstalking agents are now gone....")
 
-    @ungangstalk.error
-    async def ungangstalk_error(self, ctx, error):
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, discord.ext.commands.errors.ChannelNotFound):
+            await ctx.send("Error: Channel not found")
         if isinstance(error, discord.ext.commands.errors.MemberNotFound):
             await ctx.send("Error: Member not found")
         else:
             raise error
+
         
 def create_gangstalk(member_id, guild_id, channel_id):
     cursor.execute('INSERT INTO gangstalker (id, member, guild, channel) VALUES (NULL, ?, ?, ?)', (member_id, guild_id, channel_id))
@@ -102,5 +98,3 @@ def verify_gangstalk(member_id, guild_id):
 
 async def setup(bot):
     await bot.add_cog(Gangstalker(bot))
-
-print("Initialized gangstalker cog")
