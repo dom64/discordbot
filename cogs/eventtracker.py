@@ -83,10 +83,12 @@ class Buttons(discord.ui.View):
         event = discord.utils.get(interaction.guild.scheduled_events, id=event_id)
         event_name = re.sub("\[.*?\] ", "", event.name)
         role = discord.utils.get(interaction.guild.roles, id=role_id)
+        member_int = len(role.members)
         if len(role.members) == 0:
             await interaction.response.send_message(content="No attendees yet.", ephemeral=True)
         else:
-            await interaction.response.send_message(content=f"**Members attending {event_name}**\n\n- " + "\n- ".join(str(member.mention) for member in role.members), ephemeral=True)
+            member_list = "\n- ".join(str(member.mention) for member in role.members)
+            await interaction.response.send_message(content=f"**Members attending {event_name}**\n\n- " + member_list + f"\n\nMember Count: {member_int}", ephemeral=True)
 
 
 # Discord commands
@@ -100,13 +102,20 @@ class EventTracking(commands.Cog):
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
-    async def setupevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite], limit: int=0, channel: discord.TextChannel=None):
-        if hasattr(event, "scheduled_event"):
-            event = event.scheduled_event
-        if event.guild != ctx.guild:
+    async def setupevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite]=None, limit: int=None, channel: discord.TextChannel=None):
+        if event is None:
+            await ctx.send("!setupevent (event) (limit) (#channel)")
+            return
+        if limit is None or limit < 0:
+            await ctx.send("Error: You must put a valid number")
             return
         if channel is None:
-            channel = ctx.channel
+            await ctx.send("Error: No channel has been selected")
+            return
+        if event.guild != ctx.guild:
+            return
+        if hasattr(event, "scheduled_event"):
+            event = event.scheduled_event
         event_id = event.id
         event_name = event.name
         event_check = check_event(event_id)
@@ -147,8 +156,17 @@ class EventTracking(commands.Cog):
         elif event_check == 0:
             await ctx.send("This event was already setup")
 
-            
-
+    @setupevent.error
+    async def setupevent_error(self, ctx, error):
+        if isinstance(error, discord.ext.commands.BadUnionArgument):
+            await ctx.send("Error: You didn't provide a valid event")
+        if isinstance(error, discord.ext.commands.errors.ChannelNotFound):
+            await ctx.send("Error: You didn't provide a valid channel")
+        elif isinstance(error, discord.ext.commands.errors.BadArgument):
+            await ctx.send("Error: Invalid number used as the limit")
+        else:
+            raise error
+!
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
