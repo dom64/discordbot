@@ -166,7 +166,7 @@ class EventTracking(commands.Cog):
             await ctx.send("Error: Invalid number used as the limit")
         else:
             raise error
-!
+
     @commands.command()
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
