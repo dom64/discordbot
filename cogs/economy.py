@@ -51,19 +51,20 @@ class Economy(commands.Cog):
             except ValueError:
                 await ctx.send("You didn't put a valid number")
                 return
-
+        
         if amount > user_cash:
             await ctx.send("Don't have enough money broke-ass")
             return
         if amount <= 0:
             await ctx.send("You can't bet nothing")
             return
-        if choice.lower() not in ['h', 't']:
+        choice = choice[0].lower()
+        if choice not in ['h', 't']:
             await ctx.send("Not a valid option")
             return
         result = random.choice(['h', 't'])
 
-        if result == choice.lower():
+        if result == choice:
             add_money_to_user(user_id, amount)
             await ctx.send(f"Congrats you won {amount} coins!!!!!")
         else:
