@@ -40,6 +40,7 @@ class Gangstalker(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @commands.guild_only()
     async def gangstalk(self, ctx, member: discord.Member = None, channel: discord.TextChannel = None):
         if ctx.guild is None:
             return
@@ -61,6 +62,7 @@ class Gangstalker(commands.Cog):
 
     @commands.command()
     @commands.is_owner()
+    @commands.guild_only()
     async def ungangstalk(self, ctx, member: discord.Member = None):
         if ctx.guild is None:
             return
@@ -79,6 +81,8 @@ class Gangstalker(commands.Cog):
             await ctx.send("Error: Member not found")
         elif isinstance(error, discord.ext.commands.errors.ChannelNotFound):
             await ctx.send("Error: Channel not found")
+        elif isinstance(error, discord.ext.commands.errors.NoPrivateMessage):
+            print(f"{ctx.author} tried to use command in DMs")
         else:
             raise error
 

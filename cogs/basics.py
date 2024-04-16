@@ -15,6 +15,12 @@ class Basic(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         print(f'Message from {message.author}: {message.content}')
+        if message.guild is not None or message.author == self.bot.user:
+            return
+        if message.content[0] == "!":
+            return
+        owner = self.bot.get_user(303884984903532555)
+        await owner.send(f"{message.author}: {message.content}")
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
