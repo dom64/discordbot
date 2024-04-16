@@ -19,7 +19,7 @@ class Basic(commands.Cog):
             return
         if message.content[0] == "!":
             return
-        owner = self.bot.get_user(303884984903532555)
+        owner = self.bot.application.owner
         await owner.send(f"{message.author}: {message.content}")
 
     @commands.Cog.listener()

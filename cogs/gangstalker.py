@@ -82,7 +82,7 @@ class Gangstalker(commands.Cog):
         elif isinstance(error, discord.ext.commands.errors.ChannelNotFound):
             await ctx.send("Error: Channel not found")
         elif isinstance(error, discord.ext.commands.errors.NoPrivateMessage):
-            print(f"{ctx.author} tried to use command in DMs")
+            print(f"{ctx.author} tried to use gangstalk commands in DMs")
         else:
             raise error
 
