@@ -77,6 +77,15 @@ class Economy(commands.Cog):
             await ctx.send(f"You've claimed your check come back in {time_left_msg}")
 
     @commands.command()
+    async def top(self, ctx):
+        top_ten = get_top()
+        print(top_ten)
+        format = "Top 10:\n"
+        for x in top_ten:
+            format += f"<@{x[0]}> has ${x[1]}\n"
+        await ctx.send(format)
+
+    @commands.command()
     @commands.is_owner()
     async def addmoney(self, ctx, target: Union[discord.Member, str], amount: int):
         if isinstance(target, discord.Member):
@@ -158,6 +167,10 @@ def change_daily(user_id, timestamp):
     cursor.execute('UPDATE economy SET daily=? WHERE user_id=?', (timestamp, user_id))
     conn.commit()
 
+def get_top():
+    cursor.execute("SELECT * FROM economy ORDER BY cash DESC LIMIT 10")
+    result = cursor.fetchall()
+    return result if result else 0
 
 async def setup(bot):
     await bot.add_cog(Economy(bot))
