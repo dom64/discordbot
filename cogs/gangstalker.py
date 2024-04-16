@@ -24,7 +24,7 @@ class Gangstalker(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.guild == None:
+        if message.guild is None:
             return
         channel_id = verify_gangstalk(message.author.id, message.guild.id)
         if channel_id == 0:
@@ -41,15 +41,15 @@ class Gangstalker(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def gangstalk(self, ctx, member: discord.Member = None, channel: discord.TextChannel = None):
-        if ctx.guild == None:
+        if ctx.guild is None:
             return
-        if member == None:
+        if member is None:
             await ctx.send("Didn't select member")
             return
-        if channel == None:
+        if channel is None:
             await ctx.send("Didn't select channel")
             return
-        if member.bot == True:
+        if member.bot is True:
             await ctx.send("We can't gangstalk our own people")
             return
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
@@ -62,9 +62,9 @@ class Gangstalker(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def ungangstalk(self, ctx, member: discord.Member = None):
-        if ctx.guild == None:
+        if ctx.guild is None:
             return
-        if member == None:
+        if member is None:
             await ctx.send("Didn't select member")
             return
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
@@ -75,10 +75,10 @@ class Gangstalker(commands.Cog):
         await ctx.send("Gangstalking agents are now gone....")
 
     async def cog_command_error(self, ctx, error):
-        if isinstance(error, discord.ext.commands.errors.ChannelNotFound):
-            await ctx.send("Error: Channel not found")
         if isinstance(error, discord.ext.commands.errors.MemberNotFound):
             await ctx.send("Error: Member not found")
+        elif isinstance(error, discord.ext.commands.errors.ChannelNotFound):
+            await ctx.send("Error: Channel not found")
         else:
             raise error
 
