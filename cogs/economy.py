@@ -92,7 +92,9 @@ class Economy(commands.Cog):
         embed = discord.Embed(title="Top 10:")
         for x in top_ten:
             member = self.bot.get_user(x[0])
-            embed.add_field(name=f"{member}", value=f"${x[1]}")
+            if member is None:
+                member = await self.bot.fetch_user(x[0])
+            embed.add_field(name=f"{member.display_name}", value=f"${x[1]}")
         await ctx.send(embed=embed)
 
     @commands.command()
