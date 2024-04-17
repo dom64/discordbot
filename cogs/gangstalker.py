@@ -53,6 +53,7 @@ class Gangstalker(commands.Cog):
         if member.bot is True:
             await ctx.send("We can't gangstalk our own people")
             return
+        
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
         if channel_id != 0:
             await ctx.send("Gangstalking agents are already activated for this person")
@@ -69,6 +70,7 @@ class Gangstalker(commands.Cog):
         if member is None:
             await ctx.send("Didn't select member")
             return
+        
         channel_id = verify_gangstalk(member.id, ctx.guild.id)
         if channel_id == 0:
             await ctx.send("Gangstalking agents aren't activated for this person")

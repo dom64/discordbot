@@ -61,6 +61,7 @@ class Economy(commands.Cog):
         if amount <= 0:
             await ctx.send("You can't bet nothing")
             return
+        
         choice = choice[0].lower()
         if choice not in ['h', 't']:
             await ctx.send("Not a valid option")
@@ -94,6 +95,7 @@ class Economy(commands.Cog):
     async def top(self, ctx):
         top_ten = get_top()
         embed = discord.Embed(title="Top 10:")
+
         for x in top_ten:
             member = self.bot.get_user(x[0])
             if member is None:
@@ -108,6 +110,7 @@ class Economy(commands.Cog):
             user_id = target.id
             add_money_to_user(user_id, amount)
             await ctx.send(f'{target.mention} ${amount} has been added')
+        
         elif target.lower() == 'all':
             for member in ctx.guild.members:
                 if member.bot:
@@ -115,6 +118,7 @@ class Economy(commands.Cog):
                 user_id = member.id
                 add_money_to_user(user_id, int(amount))
             await ctx.send(f'Added ${amount} to everypony!')
+        
         else:
             await ctx.send("Invalid person")
 
@@ -125,6 +129,7 @@ class Economy(commands.Cog):
             user_id = target.id
             remove_money_to_user(user_id, amount)
             await ctx.send(f'{target.mention} ${amount} has been removed')
+        
         elif target.lower() == 'all':
             for member in ctx.guild.members:
                 if member.bot:
@@ -132,6 +137,7 @@ class Economy(commands.Cog):
                 user_id = member.id
                 remove_money_to_user(user_id, int(amount))
             await ctx.send(f'Removed ${amount} to everypony!')
+        
         else:
             await ctx.send("Invalid person")
 
@@ -142,6 +148,7 @@ class Economy(commands.Cog):
             user_id = target.id
             change_daily(user_id, 0)
             await ctx.send(f'{target.mention} daily timer reset!')
+        
         elif target.lower() == 'all':
             for member in ctx.guild.members:
                 if member.bot:
@@ -149,6 +156,7 @@ class Economy(commands.Cog):
                 user_id = member.id
                 change_daily(user_id, 0)
             await ctx.send(f'Reset daily timer for everypony!')
+        
         else:
             await ctx.send("Invalid person")
 
