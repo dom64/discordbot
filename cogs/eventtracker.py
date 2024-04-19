@@ -5,7 +5,6 @@ import re
 from typing import Union, Optional
 from datetime import timedelta
 
-
 # Init DB
 conn = sqlite3.connect('bot.db')
 cursor = conn.cursor()
@@ -32,6 +31,8 @@ class Buttons(discord.ui.View):
 
         event = discord.utils.get(interaction.guild.scheduled_events, id=event_id)
         event_name = re.sub("\[.*?\] ", "", event.name)
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        event_description = re.sub(remove, "", event.description)
 
         role = discord.utils.get(interaction.guild.roles, id=role_id)
         role_int = len(role.members)
@@ -48,13 +49,15 @@ class Buttons(discord.ui.View):
         await interaction.response.send_message(content=f"You have successfully RSVPed for {event_name}.", ephemeral=True)
 
         if limit == 0:
-            return
-        
-        if role_int >= limit:
-            await event.edit(name = f"[FULL] " + event_name)
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({interaction.message.jump_url})\n" + event_description)    
+        elif role_int >= limit:
+            event_name = f"[FULL] " + event_name
+            await event.edit(name = event_name, description = "**THIS EVENT IS FULL. DO NOT RSVP.**\n" + event_description)
         elif role_int < limit:
-            await event.edit(name = f"[{role_int}/{limit}] " + event_name)
-        embed = make_embed(event, limit, role_int)
+            event_name = f"[{role_int}/{limit}] " + event_name
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({interaction.message.jump_url})\n" + event_description)
+
+        embed = make_embed(event, limit, event_name, role_int)
         await interaction.message.edit(embed=embed)
             
 
@@ -67,6 +70,8 @@ class Buttons(discord.ui.View):
 
         event = discord.utils.get(interaction.guild.scheduled_events, id=event_id)
         event_name = re.sub("\[.*?\] ", "", event.name)
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        event_description = re.sub(remove, "", event.description)
 
         role = discord.utils.get(interaction.guild.roles, id=role_id)
         role_int = len(role.members)
@@ -80,13 +85,15 @@ class Buttons(discord.ui.View):
         await interaction.response.send_message(content=f"You have successfully un-RSVPed for {event_name}.", ephemeral=True)
 
         if limit == 0:
-            return
-        
-        if role_int >= limit:
-            await event.edit(name = f"[FULL] " + event_name)
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({interaction.message.jump_url})\n" + event_description)    
+        elif role_int >= limit:
+            event_name = f"[FULL] " + event_name
+            await event.edit(name = event_name, description = "**THIS EVENT IS FULL. DO NOT RSVP.**\n" + event_description)
         elif role_int < limit:
-            await event.edit(name = f"[{role_int}/{limit}] " + event_name)
-        embed = make_embed(event, limit, role_int)
+            event_name = f"[{role_int}/{limit}] " + event_name
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({interaction.message.jump_url})\n" + event_description)
+
+        embed = make_embed(event, limit, event_name, role_int)
         await interaction.message.edit(embed=embed)
 
     @discord.ui.button(label="List Attendees", style=discord.ButtonStyle.grey, custom_id="listattendees")
@@ -117,7 +124,7 @@ class EventTracking(commands.Cog):
         self.bot.add_view(Buttons())
         print("Initialized event tracking cog")
 
-    @commands.command()
+    @commands.command(aliases=['createevent', 'makeevent', 'createvent', 'makevent'])
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def setupevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite] = None, limit: int = None, channel: discord.TextChannel = None):
@@ -138,6 +145,7 @@ class EventTracking(commands.Cog):
         
         event_id = event.id
         event_name = event.name
+        event_description = event.description
         event_check = check_event(event_id)
 
         if event_check != 0:
@@ -145,10 +153,10 @@ class EventTracking(commands.Cog):
             return
 
         if limit != 0:
-            event_name = re.sub("\[.*?\] ", "", event.name)
-            await event.edit(name = f"[0/{limit}] " + event_name)
+            event_name = f"[0/{limit}] " + event_name
+            await event.edit(name = event_name)
         
-        embed = make_embed(event, limit)
+        embed = make_embed(event, limit, event_name)
         message = await channel.send(embed=embed, view=Buttons())
 
         guild = ctx.guild
@@ -156,11 +164,13 @@ class EventTracking(commands.Cog):
         role_name = f"[EVENT]: {event_name}"
         await guild.create_role(name=role_name)
         role = discord.utils.get(ctx.guild.roles, name=role_name)
+
+        await event.edit(description = f"[**RSVP HERE**]({message.jump_url})\n" + event_description)
         
         setup_event(message.id, role.id, event_id, channel.id, limit)
         await ctx.send("Event has been setup")
 
-    @commands.command()
+    @commands.command(aliases=['fixevent'])
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def updateevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite] = None, limit: Optional[int] = None):
@@ -195,22 +205,26 @@ class EventTracking(commands.Cog):
         role_int = len(role.members)
 
         event_name = re.sub("\[.*?\] ", "", event.name)
-
-        if limit == 0:
-            await event.edit(name = event_name)
-        elif role_int >= limit:
-            await event.edit(name = f"[FULL] " + event_name)
-        elif role_int < limit:
-            await event.edit(name = f"[{role_int}/{limit}] " + event_name)
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        event_description = re.sub(remove, '', event.description)
         
         channel = self.bot.get_channel(channel_id)
         message = await channel.fetch_message(message_id)
 
-        embed = make_embed(event, limit, role_int)
+        if limit == 0:
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({message.jump_url})\n" + event_description)
+        elif role_int >= limit:
+            event_name = f"[FULL] " + event_name
+            await event.edit(name = event_name, description = "**THIS EVENT IS FULL. DO NOT RSVP.**\n" + event_description)
+        elif role_int < limit:
+            event_name = f"[{role_int}/{limit}] " + event_name
+            await event.edit(name = event_name, description = f"[**RSVP HERE**]({message.jump_url})\n" + event_description)
+
+        embed = make_embed(event, limit, event_name, role_int)
         await message.edit(embed=embed)
         await ctx.send("Event has been updated")
 
-    @commands.command()
+    @commands.command(aliases=['deleteevent', 'removevent', 'deletevent'])
     @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def removeevent(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite] = None):
@@ -236,7 +250,9 @@ class EventTracking(commands.Cog):
         role_id = result[2]
 
         event_name = re.sub("\[.*?\] ", "", event.name)
-        await event.edit(name = event_name)
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        event_description = re.sub(remove, '', event.description)
+        await event.edit(name = event_name, description = event_description)
 
         try:
             channel = self.bot.get_channel(channel_id)
@@ -368,8 +384,11 @@ def change_limit(message_id, limit):
     cursor.execute('UPDATE events SET limits=? WHERE message_id=?', (limit, message_id))
     conn.commit()
 
-def make_embed(event, limit, members=0):
-    embed = discord.Embed(title=event.name, description=event.description, url=event.url)
+def make_embed(event, limit, event_name, members=0):
+    remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+    event_description = re.sub(remove, '', event.description)
+
+    embed = discord.Embed(title=event_name, description=event_description, url=event.url)
     embed.set_author(name=event.creator, icon_url=event.creator.avatar)
 
     start_time = f"<t:{int(event.start_time.timestamp())}:F>"
