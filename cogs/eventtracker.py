@@ -4,6 +4,8 @@ import sqlite3
 import re
 from typing import Union, Optional
 from datetime import timedelta
+import csv
+from io import StringIO
 
 # Init DB
 conn = sqlite3.connect('bot.db')
@@ -302,6 +304,47 @@ class EventTracking(commands.Cog):
 
         remove_event(message_id)
         await ctx.send("Event deleted succesfully")
+
+    @commands.command()
+    @commands.has_permissions(manage_events=True)
+    @commands.bot_has_permissions(manage_events=True, manage_roles=True)
+    async def exportcsv(self, ctx, event: Union[discord.ScheduledEvent, discord.Invite] = None):
+        if event is None:
+            await ctx.send("!exportcsv (event)")
+            return
+        if event.guild != ctx.guild:
+            await ctx.send("Error: Invalid event")
+            return
+        if hasattr(event, "scheduled_event"):
+            event = event.scheduled_event
+
+        event_id = event.id
+        event_check = check_event(event_id)
+
+        if event_check == 0:
+            await ctx.send("This event is not setup")
+            return
+        
+        result = get_event_info_from_event_id(event_id)
+        role_id = result[2]
+
+        event_name = re.sub("\[.*?\] ", "", event.name)
+
+        role = discord.utils.get(ctx.guild.roles, id=role_id)
+
+        firstrow = ['Attendee', 'Attended', 'Paid', 'Method of Payment']
+
+        file = StringIO()
+        write = csv.writer(file)
+
+        write.writerow(firstrow)
+        for x in role.members:
+            write.writerow([x.name])
+
+        file.seek(0)
+
+        await ctx.send(file=discord.File(fp=file, filename=f"{event_name} Spreadsheet Log.csv"))
+        
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.BadUnionArgument):
