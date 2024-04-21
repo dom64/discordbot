@@ -432,7 +432,14 @@ def make_embed(event, limit, event_name, members=0):
     event_description = re.sub(remove, '', event.description)
 
     embed = discord.Embed(title=event_name, description=event_description, url=event.url)
-    embed.set_author(name=event.creator, icon_url=event.creator.avatar)
+
+    # People who leave the server causes the bot to error out with the user
+    # This is a simple fix for it (maybe ill make it more neat later)
+    try:
+        event_creator_avatar = event.creator.avatar
+        embed.set_author(name=event.creator, icon_url=event_creator_avatar)
+    except:
+        pass
 
     start_time = f"<t:{int(event.start_time.timestamp())}:F>"
 
