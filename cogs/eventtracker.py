@@ -437,7 +437,6 @@ def make_embed(event, limit, event_name, members=0):
     # This is a simple fix for it (maybe ill make it more neat later)
     try:
         event_creator_avatar = event.creator.avatar
-        embed.set_author(name=event.creator, icon_url=event_creator_avatar)
     except:
         pass
 
