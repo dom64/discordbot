@@ -26,7 +26,7 @@ class Settings(commands.Cog):
         print("Initialized settings cog")
 
     @commands.group(invoke_without_command=True, aliases=['setting'])
-    @commands.has_permissions(administrator=True)
+    @commands.has_permissions(manage_guild=True)
     async def settings(self, ctx):
         await ctx.send("""Here are all the settings:
 auto_create_event
@@ -34,6 +34,7 @@ auto_delete_event
 auto_archive_event""")
 
     @settings.command()
+    @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def auto_create_event(self, ctx, choice: Union[discord.TextChannel, int] = None):
         if choice is None:
@@ -53,6 +54,7 @@ auto_archive_event""")
         await ctx.send("Invalid input")
 
     @settings.command()
+    @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def auto_delete_event(self, ctx, choice: bool = None):
         if choice is None:
@@ -69,6 +71,7 @@ auto_archive_event""")
             return
         
     @settings.command()
+    @commands.has_permissions(manage_events=True)
     @commands.bot_has_permissions(manage_events=True, manage_roles=True)
     async def auto_archive_event(self, ctx, choice: Union[discord.TextChannel, int] = None):
         if choice is None:
