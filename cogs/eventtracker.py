@@ -33,7 +33,7 @@ class Buttons(discord.ui.View):
 
         event = discord.utils.get(interaction.guild.scheduled_events, id=event_id)
         event_name = re.sub("\[.*?\] ", "", event.name)
-        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)(?:\n)?|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*(?:\n)?'
         event_description = re.sub(remove, "", event.description)
 
         role = discord.utils.get(interaction.guild.roles, id=role_id)
@@ -72,7 +72,7 @@ class Buttons(discord.ui.View):
 
         event = discord.utils.get(interaction.guild.scheduled_events, id=event_id)
         event_name = re.sub("\[.*?\] ", "", event.name)
-        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)(?:\n)?|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*(?:\n)?'
         event_description = re.sub(remove, "", event.description)
 
         role = discord.utils.get(interaction.guild.roles, id=role_id)
@@ -207,7 +207,7 @@ class EventTracking(commands.Cog):
         role_int = len(role.members)
 
         event_name = re.sub("\[.*?\] ", "", event.name)
-        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)(?:\n)?|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*(?:\n)?'
         event_description = re.sub(remove, '', event.description)
         
         channel = self.bot.get_channel(channel_id)
@@ -252,7 +252,7 @@ class EventTracking(commands.Cog):
         role_id = result[2]
 
         event_name = re.sub("\[.*?\] ", "", event.name)
-        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+        remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)(?:\n)?|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*(?:\n)?'
         event_description = re.sub(remove, '', event.description)
         await event.edit(name = event_name, description = event_description)
 
@@ -345,7 +345,6 @@ class EventTracking(commands.Cog):
 
         await ctx.send(file=discord.File(fp=file, filename=f"{event_name} Spreadsheet Log.csv"))
         
-
     async def cog_command_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.BadUnionArgument):
             await ctx.send("Error: You didn't provide a valid event")
@@ -357,45 +356,135 @@ class EventTracking(commands.Cog):
         #     await ctx.send("Error: ID not found")
         else:
             raise error
+        
+    @commands.Cog.listener()
+    @commands.bot_has_permissions(manage_events=True)
+    async def on_scheduled_event_create(self, event):
+        auto_create_event = check_auto_create_event(event.guild.id)
+        if auto_create_event == 0:
+            return
+        
+        event_id = event.id
+        event_name = event.name
+        event_description = event.description
+        
+        channel = self.bot.get_channel(auto_create_event)
 
+        limit_str = re.search(r"\[(.*?)\]", event_name)
 
-    # @commands.Cog.listener()
-    # @commands.bot_has_permissions(manage_events=True)
-    # async def on_scheduled_event_delete(self, event):
-    #     event_id = event.id
-    #     event_check = check_event(event_id)
-    #     if event_check == 0:
-    #         return
-    #     result = get_event_info_from_event_id(event_id)
-    #     message_id = result[0]
-    #     channel_id = result[1]
-    #     role_id = result[2]
-    #     channel = self.bot.get_channel(channel_id)
-    #     message = await channel.fetch_message(message_id)
-    #     await message.delete()
-    #     role = discord.utils.get(event.guild.roles, id=role_id)
-    #     await role.delete()
-    #     remove_event(message_id)
+        if limit_str:
+            limit = limit_str.group(1)
+        else:
+            limit = 0
 
-    # @commands.Cog.listener()
-    # @commands.bot_has_permissions(manage_events=True)
-    # async def on_scheduled_event_update(self, before, after):
-    #     if after.status != discord.EventStatus.completed and after.status != discord.EventStatus.cancelled:
-    #         return
-    #     event_id = before.id
-    #     event_check = check_event(event_id)
-    #     if event_check == 0:
-    #         return
-    #     result = get_event_info_from_event_id(event_id)
-    #     message_id = result[0]
-    #     channel_id = result[1]
-    #     role_id = result[2]
-    #     channel = self.bot.get_channel(channel_id)
-    #     message = await channel.fetch_message(message_id)
-    #     await message.delete()
-    #     role = discord.utils.get(before.guild.roles, id=role_id)
-    #     await role.delete()
-    #     remove_event(message_id)
+        event_name = re.sub("\[.*?\] ", "", event.name)
+
+        if limit != 0:
+            event_name = f"[0/{limit}] " + event_name
+        await event.edit(name = event_name)
+        
+        embed = make_embed(event, limit, event_name)
+        message = await channel.send(embed=embed, view=Buttons())
+
+        guild = event.guild
+
+        role_name = f"[EVENT]: {event_name}"
+        await guild.create_role(name=role_name)
+        role = discord.utils.get(event.guild.roles, name=role_name)
+
+        await event.edit(description = f"[**RSVP HERE**]({message.jump_url})\n" + event_description)
+        
+        setup_event(message.id, role.id, event_id, channel.id, limit)
+
+    @commands.Cog.listener()
+    @commands.bot_has_permissions(manage_events=True)
+    async def on_scheduled_event_delete(self, event):
+        auto_event_delete = check_auto_delete_event(event.guild.id)
+        if auto_event_delete == 0:
+            return
+
+        event_id = event.id
+        event_check = check_event(event_id)
+
+        if event_check == 0:
+            return
+        result = get_event_info_from_event_id(event_id)
+
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+
+        try:
+            channel = self.bot.get_channel(channel_id)
+            message = await channel.fetch_message(message_id)
+            await message.delete()
+        except:
+            pass
+
+        try:
+            role = discord.utils.get(event.guild.roles, id=role_id)
+            await role.delete()
+        except:
+            pass
+
+        remove_event(message_id)
+
+    @commands.Cog.listener()
+    @commands.bot_has_permissions(manage_events=True)
+    async def on_scheduled_event_update(self, event, after):
+        if after.status != discord.EventStatus.completed and after.status != discord.EventStatus.cancelled:
+            return
+        
+        auto_event_delete = check_auto_delete_event(event.guild.id)
+        if auto_event_delete == 0:
+            return
+
+        event_id = event.id
+        event_check = check_event(event_id)
+
+        if event_check == 0:
+            return
+        result = get_event_info_from_event_id(event_id)
+
+        message_id = result[0]
+        channel_id = result[1]
+        role_id = result[2]
+        channel = self.bot.get_channel(channel_id)
+
+        auto_archive_event = check_auto_archive_event(event.guild.id)
+
+        try:
+            channel = self.bot.get_channel(channel_id)
+            message = await channel.fetch_message(message_id)
+            if after.status == discord.EventStatus.completed and auto_archive_event != 0:
+                archive_channel = self.bot.get_channel(auto_archive_event)
+                await archive_channel.send("Event Archived:", embed=message.embeds[0])
+            await message.delete()
+        except:
+            pass
+
+        try:
+            role = discord.utils.get(event.guild.roles, id=role_id)
+            if after.status == discord.EventStatus.completed and auto_archive_event != 0:
+                member_list = "\n- ".join(str(member.mention) for member in role.members)
+                await archive_channel.send(member_list + f"\n\nMember Count: {len(role.members)}")
+                firstrow = ['Attendee', 'Attended', 'Paid', 'Method of Payment']
+
+                file = StringIO()
+                write = csv.writer(file)
+
+                write.writerow(firstrow)
+                for x in role.members:
+                    write.writerow([x.name])
+
+                file.seek(0)
+
+                await archive_channel.send(file=discord.File(fp=file, filename=f"{event.name} Spreadsheet Log.csv"))
+            await role.delete()
+        except:
+            pass
+
+        remove_event(message_id)
 
 
 
@@ -427,8 +516,23 @@ def change_limit(message_id, limit):
     cursor.execute('UPDATE events SET limits=? WHERE message_id=?', (limit, message_id))
     conn.commit()
 
+def check_auto_create_event(guild_id):
+    cursor.execute('SELECT auto_create_event FROM settings WHERE guild_id = ?', (guild_id,))
+    result = cursor.fetchone()
+    return result[0] if result else 0
+
+def check_auto_delete_event(guild_id):
+    cursor.execute('SELECT auto_delete_event FROM settings WHERE guild_id = ?', (guild_id,))
+    result = cursor.fetchone()
+    return result[0] if result else 0
+
+def check_auto_archive_event(guild_id):
+    cursor.execute('SELECT auto_archive_event FROM settings WHERE guild_id = ?', (guild_id,))
+    result = cursor.fetchone()
+    return result[0] if result else 0
+
 def make_embed(event, limit, event_name, members=0):
-    remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)\n|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*\n'
+    remove = r'\[\*\*RSVP HERE\*\*\]\(.*?\)(?:\n)?|\*\*THIS EVENT IS FULL\. DO NOT RSVP\.\*\*(?:\n)?'
     event_description = re.sub(remove, '', event.description)
 
     embed = discord.Embed(title=event_name, description=event_description, url=event.url)
@@ -436,7 +540,7 @@ def make_embed(event, limit, event_name, members=0):
     # People who leave the server causes the bot to error out with the user
     # This is a simple fix for it (maybe ill make it more neat later)
     try:
-        event_creator_avatar = event.creator.avatar
+        embed.set_author(name=event.creator, icon_url=event.creator.avatar)
     except:
         pass
 
