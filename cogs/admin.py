@@ -14,7 +14,7 @@ class Admin(commands.Cog):
     async def idban(self, ctx, user_id: int):
         user = await self.bot.fetch_user(user_id)
         await ctx.guild.ban(user)
-        await ctx.send(f"User {user.name} has been banned")
+        await ctx.send(f"User {user.name} ({user.mention}) has been banned")
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, discord.ext.commands.errors.MemberNotFound):
