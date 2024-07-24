@@ -9,7 +9,7 @@ from typing import Union
 # For multi use number is just how much they have
 
 #Init DB
-conn = sqlite3.connect('bot.db')
+conn = sqlite3.connect('db/bot.db')
 cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS custom_roles (

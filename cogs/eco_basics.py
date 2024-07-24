@@ -6,7 +6,7 @@ import datetime
 from typing import Union
 
 # Init DB
-conn = sqlite3.connect('bot.db')
+conn = sqlite3.connect('db/bot.db')
 cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS economy (

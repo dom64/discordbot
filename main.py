@@ -12,7 +12,7 @@ discord.utils.setup_logging(level=logging.INFO, root=False)
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-with open('token.json', 'r') as file:
+with open('db/token.json', 'r') as file:
       data = json.load(file)
       token = data.get('token')
 
